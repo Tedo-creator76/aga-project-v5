@@ -29,21 +29,30 @@ export default function ProjetDetailPage() {
         >
           📄 Documents
         </Link>
-        <div className="bg-white rounded-xl shadow p-6 text-lg font-semibold">
+        <Link
+          href="/projets/1/planning-opc"
+          className="bg-white rounded-xl shadow hover:shadow-lg transition p-6 text-lg font-semibold"
+        >
           📅 Planning OPC
-        </div>
-        <div className="bg-white rounded-xl shadow p-6 text-lg font-semibold">
+        </Link>
+        <Link
+          href="/projets/1/comptes-rendus"
+          className="bg-white rounded-xl shadow hover:shadow-lg transition p-6 text-lg font-semibold"
+        >
           📝 Comptes rendus
-        </div>
+        </Link>
         <Link
           href="/projets/1/visa-des-plans"
           className="bg-white rounded-xl shadow hover:shadow-lg transition p-6 text-lg font-semibold"
         >
           📐 Visa des plans
         </Link>
-        <div className="bg-white rounded-xl shadow p-6 text-lg font-semibold">
+        <Link
+          href="/projets/1/finances"
+          className="bg-white rounded-xl shadow hover:shadow-lg transition p-6 text-lg font-semibold"
+        >
           💰 Finances
-        </div>
+        </Link>
         <Link
           href="/projets/1/camille-ia"
           className="bg-white rounded-xl shadow hover:shadow-lg transition p-6 text-lg font-semibold"
