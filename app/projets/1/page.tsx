@@ -44,9 +44,12 @@ export default function ProjetDetailPage() {
         <div className="bg-white rounded-xl shadow p-6 text-lg font-semibold">
           💰 Finances
         </div>
-        <div className="bg-white rounded-xl shadow p-6 text-lg font-semibold">
+        <Link
+          href="/projets/1/camille-ia"
+          className="bg-white rounded-xl shadow hover:shadow-lg transition p-6 text-lg font-semibold"
+        >
           🤖 Camille IA
-        </div>
+        </Link>
       </div>
       {/* CONTENU */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-10">
