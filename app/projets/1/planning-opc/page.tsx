@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
 type Jalon = {
   id: number
@@ -7,18 +8,6 @@ type Jalon = {
   statut: 'fait' | 'en-cours' | 'à-venir' | 'retard'
   responsable: string
 }
-
-const JALONS: Jalon[] = [
-  { id: 1,  nom: 'DOE remis par les entreprises',          date: '2026-03-15', statut: 'fait',     responsable: 'Entreprises GO' },
-  { id: 2,  nom: 'Réception provisoire chantier',          date: '2026-04-10', statut: 'fait',     responsable: 'Alex / MOA' },
-  { id: 3,  nom: 'Levée des réserves lot Gros Œuvre',      date: '2026-05-05', statut: 'fait',     responsable: 'BATIPRO' },
-  { id: 4,  nom: 'Levée des réserves lot Menuiseries',     date: '2026-05-20', statut: 'en-cours', responsable: 'MENUISALU' },
-  { id: 5,  nom: 'Levée des réserves lot Plomberie',       date: '2026-06-01', statut: 'retard',   responsable: 'AQUA SAS' },
-  { id: 6,  nom: 'Réception définitive',                   date: '2026-07-15', statut: 'à-venir',  responsable: 'Alex / MOA' },
-  { id: 7,  nom: 'GPA — visite 6 mois',                   date: '2026-10-10', statut: 'à-venir',  responsable: 'Alex' },
-  { id: 8,  nom: 'GPA — visite 1 an',                     date: '2027-04-10', statut: 'à-venir',  responsable: 'Alex' },
-  { id: 9,  nom: 'Clôture administrative du marché',       date: '2027-06-30', statut: 'à-venir',  responsable: 'PROMOGIM' },
-]
 
 const STATUT_STYLE: Record<Jalon['statut'], { label: string; classes: string }> = {
   'fait':     { label: 'Fait',      classes: 'bg-green-100 text-green-700' },
@@ -31,10 +20,32 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-export default function PlanningOPCPage() {
-  const faits    = JALONS.filter((j) => j.statut === 'fait').length
-  const enCours  = JALONS.filter((j) => j.statut === 'en-cours').length
-  const retards  = JALONS.filter((j) => j.statut === 'retard').length
+async function getJalons(): Promise<Jalon[]> {
+  const { data } = await supabase
+    .from('jalons')
+    .select('id, nom, date, statut, responsable')
+    .eq('project_id', 1)
+    .order('date', { ascending: true })
+
+  return (data as Jalon[]) ?? [
+    // Fallback aux données hardcodées si la table n'existe pas
+    { id: 1,  nom: 'DOE remis par les entreprises',          date: '2026-03-15', statut: 'fait',     responsable: 'Entreprises GO' },
+    { id: 2,  nom: 'Réception provisoire chantier',          date: '2026-04-10', statut: 'fait',     responsable: 'Alex / MOA' },
+    { id: 3,  nom: 'Levée des réserves lot Gros Œuvre',      date: '2026-05-05', statut: 'fait',     responsable: 'BATIPRO' },
+    { id: 4,  nom: 'Levée des réserves lot Menuiseries',     date: '2026-05-20', statut: 'en-cours', responsable: 'MENUISALU' },
+    { id: 5,  nom: 'Levée des réserves lot Plomberie',       date: '2026-06-01', statut: 'retard',   responsable: 'AQUA SAS' },
+    { id: 6,  nom: 'Réception définitive',                   date: '2026-07-15', statut: 'à-venir',  responsable: 'Alex / MOA' },
+    { id: 7,  nom: 'GPA — visite 6 mois',                   date: '2026-10-10', statut: 'à-venir',  responsable: 'Alex' },
+    { id: 8,  nom: 'GPA — visite 1 an',                     date: '2027-04-10', statut: 'à-venir',  responsable: 'Alex' },
+    { id: 9,  nom: 'Clôture administrative du marché',       date: '2027-06-30', statut: 'à-venir',  responsable: 'PROMOGIM' },
+  ]
+}
+
+export default async function PlanningOPCPage() {
+  const jalons = await getJalons()
+  const faits    = jalons.filter((j) => j.statut === 'fait').length
+  const enCours  = jalons.filter((j) => j.statut === 'en-cours').length
+  const retards  = jalons.filter((j) => j.statut === 'retard').length
 
   return (
     <main className="min-h-screen bg-slate-100 p-8 md:p-10">
@@ -54,7 +65,7 @@ export default function PlanningOPCPage() {
         <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div className="rounded-xl bg-white p-6 shadow">
             <p className="text-sm text-slate-500">Total jalons</p>
-            <p className="mt-1 text-3xl font-bold text-slate-900">{JALONS.length}</p>
+            <p className="mt-1 text-3xl font-bold text-slate-900">{jalons.length}</p>
           </div>
           <div className="rounded-xl bg-white p-6 shadow">
             <p className="text-sm text-slate-500">Réalisés</p>
@@ -90,7 +101,7 @@ export default function PlanningOPCPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {JALONS.map((jalon) => {
+                {jalons.map((jalon) => {
                   const s = STATUT_STYLE[jalon.statut]
                   return (
                     <tr key={jalon.id} className="hover:bg-slate-50">

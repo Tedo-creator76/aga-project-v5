@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
 type Lot = {
   id: number
@@ -9,21 +10,6 @@ type Lot = {
   depense: number
 }
 
-const LOTS: Lot[] = [
-  { id: 1,  nom: 'Gros Œuvre',         entreprise: 'BATIPRO SAS',      budget: 3_200_000, marche: 3_150_000, depense: 3_150_000 },
-  { id: 2,  nom: 'Charpente',          entreprise: 'BOIS & STRUCTURE',  budget:   420_000, marche:   415_000, depense:   415_000 },
-  { id: 3,  nom: 'Couverture',         entreprise: 'TOITURE IDF',       budget:   280_000, marche:   275_000, depense:   270_000 },
-  { id: 4,  nom: 'Menuiseries ext.',   entreprise: 'MENUISALU',         budget:   950_000, marche:   940_000, depense:   820_000 },
-  { id: 5,  nom: 'Cloisons / plâtre',  entreprise: 'PLATRIDF',          budget:   560_000, marche:   555_000, depense:   480_000 },
-  { id: 6,  nom: 'Plomberie / CVC',    entreprise: 'AQUA SAS',          budget:   780_000, marche:   790_000, depense:   650_000 },
-  { id: 7,  nom: 'Électricité',        entreprise: 'ELEC PRO 93',       budget:   620_000, marche:   615_000, depense:   530_000 },
-  { id: 8,  nom: 'Carrelage / faïence',entreprise: 'CARRELUX',          budget:   310_000, marche:   308_000, depense:   270_000 },
-  { id: 9,  nom: 'Peinture',           entreprise: 'COULEURS 92',       budget:   190_000, marche:   185_000, depense:   140_000 },
-  { id: 10, nom: 'VRD / Espaces verts',entreprise: 'TERRASSEMENTS IDF', budget:   390_000, marche:   382_000, depense:   370_000 },
-  { id: 11, nom: 'Ascenseurs',         entreprise: 'OTIS FRANCE',       budget:   180_000, marche:   178_000, depense:   160_000 },
-  { id: 12, nom: 'Divers / imprévus',  entreprise: '—',                 budget:   320_000, marche:         0, depense:    95_000 },
-]
-
 function euros(n: number) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
 }
@@ -32,10 +18,35 @@ function ecart(lot: Lot) {
   return lot.marche - lot.budget
 }
 
-export default function FinancesPage() {
-  const totalBudget  = LOTS.reduce((s, l) => s + l.budget,  0)
-  const totalMarche  = LOTS.reduce((s, l) => s + l.marche,  0)
-  const totalDepense = LOTS.reduce((s, l) => s + l.depense, 0)
+async function getLots(): Promise<Lot[]> {
+  const { data } = await supabase
+    .from('lots')
+    .select('id, nom, entreprise, budget, marche, depense')
+    .eq('project_id', 1)
+    .order('id', { ascending: true })
+
+  return (data as Lot[]) ?? [
+    // Fallback aux données hardcodées si la table n'existe pas
+    { id: 1,  nom: 'Gros Œuvre',         entreprise: 'BATIPRO SAS',      budget: 3_200_000, marche: 3_150_000, depense: 3_150_000 },
+    { id: 2,  nom: 'Charpente',          entreprise: 'BOIS & STRUCTURE',  budget:   420_000, marche:   415_000, depense:   415_000 },
+    { id: 3,  nom: 'Couverture',         entreprise: 'TOITURE IDF',       budget:   280_000, marche:   275_000, depense:   270_000 },
+    { id: 4,  nom: 'Menuiseries ext.',   entreprise: 'MENUISALU',         budget:   950_000, marche:   940_000, depense:   820_000 },
+    { id: 5,  nom: 'Cloisons / plâtre',  entreprise: 'PLATRIDF',          budget:   560_000, marche:   555_000, depense:   480_000 },
+    { id: 6,  nom: 'Plomberie / CVC',    entreprise: 'AQUA SAS',          budget:   780_000, marche:   790_000, depense:   650_000 },
+    { id: 7,  nom: 'Électricité',        entreprise: 'ELEC PRO 93',       budget:   620_000, marche:   615_000, depense:   530_000 },
+    { id: 8,  nom: 'Carrelage / faïence',entreprise: 'CARRELUX',          budget:   310_000, marche:   308_000, depense:   270_000 },
+    { id: 9,  nom: 'Peinture',           entreprise: 'COULEURS 92',       budget:   190_000, marche:   185_000, depense:   140_000 },
+    { id: 10, nom: 'VRD / Espaces verts',entreprise: 'TERRASSEMENTS IDF', budget:   390_000, marche:   382_000, depense:   370_000 },
+    { id: 11, nom: 'Ascenseurs',         entreprise: 'OTIS FRANCE',       budget:   180_000, marche:   178_000, depense:   160_000 },
+    { id: 12, nom: 'Divers / imprévus',  entreprise: '—',                 budget:   320_000, marche:         0, depense:    95_000 },
+  ]
+}
+
+export default async function FinancesPage() {
+  const lots = await getLots()
+  const totalBudget  = lots.reduce((s, l) => s + l.budget,  0)
+  const totalMarche  = lots.reduce((s, l) => s + l.marche,  0)
+  const totalDepense = lots.reduce((s, l) => s + l.depense, 0)
   const totalEcart   = totalMarche - totalBudget
   const tauxEngagement = Math.round((totalDepense / totalBudget) * 100)
 
@@ -109,7 +120,7 @@ export default function FinancesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {LOTS.map((lot) => {
+                {lots.map((lot) => {
                   const e = ecart(lot)
                   return (
                     <tr key={lot.id} className="hover:bg-slate-50">
