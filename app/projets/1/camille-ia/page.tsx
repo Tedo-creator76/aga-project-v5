@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
 const N8N_WEBHOOK_URL = 'https://joinlion.app.n8n.cloud/webhook/camille-chat'
 
@@ -26,6 +27,35 @@ export default function CamilleIAPage() {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    loadHistory()
+  }, [])
+
+  const loadHistory = async () => {
+    const { data } = await supabase
+      .from('camille_messages')
+      .select('id, role, content, created_at')
+      .eq('project_id', 1)
+      .order('created_at', { ascending: true })
+
+    if (data && data.length > 0) {
+      const history = data.map((m: any) => ({
+        id: m.id.toString(),
+        role: m.role as 'user' | 'camille',
+        content: m.content,
+        timestamp: new Date(m.created_at),
+      }))
+      setMessages([WELCOME, ...history])
+    }
+  }
+
+  const saveMessage = async (role: 'user' | 'camille', content: string) => {
+    await supabase
+      .from('camille_messages')
+      .insert({ project_id: 1, role, content })
+      .catch(() => {}) // Silencieusement échouer si Supabase n'est pas dispo
+  }
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
@@ -44,6 +74,9 @@ export default function CamilleIAPage() {
     setInput('')
     setLoading(true)
 
+    // Sauvegarder le message utilisateur
+    await saveMessage('user', text)
+
     try {
       const response = await fetch(N8N_WEBHOOK_URL, {
         method: 'POST',
@@ -59,25 +92,25 @@ export default function CamilleIAPage() {
       const data = await response.json().catch(() => null)
       const reply = data?.reply ?? data?.output ?? data?.text ?? 'Réponse reçue.'
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `camille_${Date.now()}`,
-          role: 'camille',
-          content: reply,
-          timestamp: new Date(),
-        },
-      ])
+      const camilleMsg: Message = {
+        id: `camille_${Date.now()}`,
+        role: 'camille',
+        content: reply,
+        timestamp: new Date(),
+      }
+
+      setMessages((prev) => [...prev, camilleMsg])
+
+      // Sauvegarder la réponse Camille
+      await saveMessage('camille', reply)
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `err_${Date.now()}`,
-          role: 'camille',
-          content: 'Désolée, une erreur est survenue. Veuillez réessayer.',
-          timestamp: new Date(),
-        },
-      ])
+      const errorMsg: Message = {
+        id: `err_${Date.now()}`,
+        role: 'camille',
+        content: 'Désolée, une erreur est survenue. Veuillez réessayer.',
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMsg])
     } finally {
       setLoading(false)
     }
