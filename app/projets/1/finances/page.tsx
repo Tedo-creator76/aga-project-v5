@@ -19,13 +19,25 @@ function ecart(lot: Lot) {
 }
 
 async function getLots(): Promise<Lot[]> {
-  const { data } = await supabase
-    .from('lots')
-    .select('id, nom, entreprise, budget, marche, depense')
-    .eq('project_id', 1)
-    .order('id', { ascending: true })
+  try {
+    const { data: projects } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('name', 'Résidence Drancy')
+      .single()
 
-  return (data as Lot[]) ?? [
+    if (!projects) throw new Error('Projet non trouvé')
+
+    const { data } = await supabase
+      .from('lots')
+      .select('id, nom, entreprise, budget, marche, depense')
+      .eq('project_id', projects.id)
+      .order('id', { ascending: true })
+
+    return (data as Lot[]) ?? []
+  } catch (err) {
+    console.error('Erreur getLots:', err)
+    return [
     // Fallback aux données hardcodées si la table n'existe pas
     { id: 1,  nom: 'Gros Œuvre',         entreprise: 'BATIPRO SAS',      budget: 3_200_000, marche: 3_150_000, depense: 3_150_000 },
     { id: 2,  nom: 'Charpente',          entreprise: 'BOIS & STRUCTURE',  budget:   420_000, marche:   415_000, depense:   415_000 },
@@ -39,7 +51,8 @@ async function getLots(): Promise<Lot[]> {
     { id: 10, nom: 'VRD / Espaces verts',entreprise: 'TERRASSEMENTS IDF', budget:   390_000, marche:   382_000, depense:   370_000 },
     { id: 11, nom: 'Ascenseurs',         entreprise: 'OTIS FRANCE',       budget:   180_000, marche:   178_000, depense:   160_000 },
     { id: 12, nom: 'Divers / imprévus',  entreprise: '—',                 budget:   320_000, marche:         0, depense:    95_000 },
-  ]
+    ]
+  }
 }
 
 export default async function FinancesPage() {

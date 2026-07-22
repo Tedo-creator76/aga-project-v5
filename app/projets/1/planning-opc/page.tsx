@@ -21,13 +21,25 @@ function formatDate(iso: string) {
 }
 
 async function getJalons(): Promise<Jalon[]> {
-  const { data } = await supabase
-    .from('jalons')
-    .select('id, nom, date, statut, responsable')
-    .eq('project_id', 1)
-    .order('date', { ascending: true })
+  try {
+    const { data: projects } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('name', 'Résidence Drancy')
+      .single()
 
-  return (data as Jalon[]) ?? [
+    if (!projects) throw new Error('Projet non trouvé')
+
+    const { data } = await supabase
+      .from('jalons')
+      .select('id, nom, date, statut, responsable')
+      .eq('project_id', projects.id)
+      .order('date', { ascending: true })
+
+    return (data as Jalon[]) ?? []
+  } catch (err) {
+    console.error('Erreur getJalons:', err)
+    return [
     // Fallback aux données hardcodées si la table n'existe pas
     { id: 1,  nom: 'DOE remis par les entreprises',          date: '2026-03-15', statut: 'fait',     responsable: 'Entreprises GO' },
     { id: 2,  nom: 'Réception provisoire chantier',          date: '2026-04-10', statut: 'fait',     responsable: 'Alex / MOA' },
@@ -38,7 +50,8 @@ async function getJalons(): Promise<Jalon[]> {
     { id: 7,  nom: 'GPA — visite 6 mois',                   date: '2026-10-10', statut: 'à-venir',  responsable: 'Alex' },
     { id: 8,  nom: 'GPA — visite 1 an',                     date: '2027-04-10', statut: 'à-venir',  responsable: 'Alex' },
     { id: 9,  nom: 'Clôture administrative du marché',       date: '2027-06-30', statut: 'à-venir',  responsable: 'PROMOGIM' },
-  ]
+    ]
+  }
 }
 
 export default async function PlanningOPCPage() {
