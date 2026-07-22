@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import LogoutButton from './_components/LogoutButton'
 
 const NAV = [
   { href: '/',        icon: '🏠', label: 'Tableau de bord', exact: true },
@@ -64,7 +65,7 @@ export default async function Home() {
             </div>
           </nav>
 
-          <div className="px-5 py-4 border-t border-slate-800">
+          <div className="px-5 py-4 border-t border-slate-800 space-y-3">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-bold">A</div>
               <div>
@@ -72,6 +73,7 @@ export default async function Home() {
                 <p className="text-xs text-slate-500">Administrateur</p>
               </div>
             </div>
+            <LogoutButton />
           </div>
         </aside>
 
