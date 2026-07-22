@@ -40,11 +40,7 @@ export default function PlanningOPCPage() {
     <main className="min-h-screen bg-slate-100 p-8 md:p-10">
       <div className="mx-auto max-w-7xl">
 
-        <Link href="/projets/1" className="text-slate-600 hover:text-slate-900">
-          ← Retour au projet
-        </Link>
-
-        <div className="mt-6 flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-4xl font-bold text-slate-900">📅 Planning OPC</h1>
             <p className="mt-2 text-slate-600">Résidence Drancy — Jalons et suivi d'avancement</p>

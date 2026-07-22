@@ -4,14 +4,7 @@ export default function DocumentsPage() {
   return (
     <main className="min-h-screen bg-slate-100 p-10">
 
-      <Link
-        href="/projets/1"
-        className="text-slate-600 hover:text-slate-900"
-      >
-        ← Retour au projet
-      </Link>
-
-      <div className="flex justify-between items-center mt-6">
+      <div className="flex justify-between items-center">
 
         <div>
           <h1 className="text-4xl font-bold">

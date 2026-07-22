@@ -2,13 +2,7 @@ import Link from "next/link";
 export default function ProjetDetailPage() {
   return (
     <main className="min-h-screen bg-slate-100 p-8">
-      <Link
-        href="/projets"
-        className="text-slate-600 hover:text-slate-900"
-      >
-        ← Retour aux projets
-      </Link>
-      <div className="flex justify-between items-start mt-4">
+      <div className="flex justify-between items-start">
         <div>
           <h1 className="text-5xl font-bold text-slate-900">
             Résidence Drancy
