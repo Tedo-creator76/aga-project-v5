@@ -1,27 +1,21 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-export async function middleware(request: NextRequest) {
+const publicRoutes = ['/', '/auth/login', '/auth/signup']
+
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Routes publiques (pas besoin d'auth)
-  const publicRoutes = ['/', '/auth/login', '/auth/signup']
   if (publicRoutes.includes(pathname)) {
     return NextResponse.next()
   }
 
-  // Routes protégées (nécessitent une session)
-  const protectedRoutes = ['/projets']
-  const isProtected = protectedRoutes.some(route => pathname.startsWith(route))
-
+  const isProtected = pathname.startsWith('/projets')
   if (!isProtected) {
     return NextResponse.next()
   }
 
-  // Vérifier la session Supabase
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+  let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -44,7 +38,6 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Pas de session → rediriger vers login
   if (!user) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
