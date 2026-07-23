@@ -49,10 +49,11 @@ export default function CamilleIAPage() {
   }
 
   const saveMessage = async (role: 'user' | 'camille', content: string) => {
-    await supabase
-      .from('camille_messages')
-      .insert({ project_id: 1, role, content })
-      .catch(() => {}) // Silencieusement échouer si Supabase n'est pas dispo
+    try {
+      await supabase
+        .from('camille_messages')
+        .insert({ project_id: 1, role, content })
+    } catch {}
   }
 
   useEffect(() => {
